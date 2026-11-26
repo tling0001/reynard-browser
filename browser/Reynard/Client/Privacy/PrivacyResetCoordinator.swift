@@ -3,7 +3,7 @@
 //  Reynard
 //
 //  This fork intentionally starts a fresh browsing session on every launch
-//  and whenever iOS locks the device / makes protected data unavailable.
+//  and after a device-lock event. Ordinary app/window switching is preserved.
 //
 
 import GeckoView
@@ -11,7 +11,29 @@ import UIKit
 
 @MainActor
 enum PrivacyResetCoordinator {
+    private static let deviceLockPendingKey = "PrivacyResetCoordinator.deviceLockPending"
     private static var isResetting = false
+
+    /// Called when iOS reports that protected data is about to become unavailable.
+    /// Persist the marker because the app may be suspended before it can act.
+    static func noteDeviceLock() {
+        UserDefaults.standard.set(true, forKey: deviceLockPendingKey)
+    }
+
+    /// Consume the lock marker on return. Ordinary foreground transitions do
+    /// nothing unless iOS previously reported a device-lock/protected-data event.
+    @discardableResult
+    static func resetIfDeviceWasLocked() -> Bool {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: deviceLockPendingKey) else {
+            return false
+        }
+
+        // Clear first so multiple scenes becoming active cannot repeat the reset.
+        defaults.removeObject(forKey: deviceLockPendingKey)
+        reset(reason: "device locked while app was inactive")
+        return true
+    }
 
     static func reset(reason: String) {
         guard !isResetting else { return }
@@ -44,7 +66,7 @@ enum PrivacyResetCoordinator {
                 try await GeckoStorageController.clearData(flags: flags)
                 await GeckoStorageController.clearTranslationModelCache()
             } catch {
-                NSLog("Reynard: failed to clear Gecko browsing data: %@", "\(error)")
+                NSLog("Reynard: failed to clear Gecko browsing data: %@", "\\(error)")
             }
         }
     }
