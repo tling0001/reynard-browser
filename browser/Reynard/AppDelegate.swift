@@ -11,6 +11,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         JITController.shared.startBackgroundAudioIfNeeded()
+
+        // iOS posts this when the device is locked and protected data becomes
+        // unavailable. Unlike ordinary app switching, this is a privacy boundary.
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.protectedDataWillBecomeUnavailableNotification,
+            object: application,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                PrivacyResetCoordinator.reset(reason: "device locked / protected data unavailable")
+            }
+        }
         return true
     }
     
