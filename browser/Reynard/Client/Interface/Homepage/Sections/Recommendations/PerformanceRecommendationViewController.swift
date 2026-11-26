@@ -407,14 +407,8 @@ final class PerformanceRecommendationViewController: UIViewController, HomepageR
             return nil
         }
         
-        if isiOS174OrNewer && !Prefs.JITSettings.isJITEnabled {
-            return .enableInAppJIT
-        }
-        
-        if shouldUseTrollStore {
-            return .installTrollStore
-        }
-        
+        // This fork only distributes the standard IPA. Do not show prompts
+        // that recommend enabling JIT or installing a TrollStore build.
         return nil
     }
     
@@ -424,20 +418,5 @@ final class PerformanceRecommendationViewController: UIViewController, HomepageR
         }
         return false
     }
-    
-    private static var shouldUseTrollStore: Bool {
-        if #available(iOS 17.0, *) {
-            if #unavailable(iOS 17.0.1) {
-                return !getEntitlementValue("com.apple.private.security.no-sandbox")
-            }
-        }
-        
-        if #available(iOS 14.0, *) {
-            if #unavailable(iOS 16.7) {
-                return !getEntitlementValue("com.apple.private.security.no-sandbox")
-            }
-        }
-        
-        return false
-    }
+
 }
