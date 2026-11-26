@@ -8,6 +8,8 @@
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    private static var didResetForLaunch = false
+
     var window: UIWindow?
     private var browserWindow: BrowserWindow?
     
@@ -18,7 +20,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let browserWindow = BrowserWindowManager.shared.connect(windowScene, draggedTabID: draggedTabID)
         window = browserWindow.window
         self.browserWindow = browserWindow
-        
+
+        // A new process must never restore the previous browsing session.
+        if !Self.didResetForLaunch {
+            Self.didResetForLaunch = true
+            PrivacyResetCoordinator.reset(reason: "application launch")
+        }
+
         handleIncomingURLContexts(connectionOptions.urlContexts)
     }
     
