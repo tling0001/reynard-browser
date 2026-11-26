@@ -45,6 +45,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func sceneDidBecomeActive(_ scene: UIScene) {
+        // Only reset if iOS recorded a device-lock event. Normal window/app
+        // switching does not set this marker and therefore preserves the session.
+        PrivacyResetCoordinator.resetIfDeviceWasLocked()
+
         guard let browserWindow else {
             return
         }
