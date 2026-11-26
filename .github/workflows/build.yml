@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   prepare:
-    if: ${{ github.repository_owner == 'minh-ton' }}
+    if: ${{ github.repository_owner == 'tling0001' }}
     name: Select build variants
     runs-on: ubuntu-latest
     outputs:
