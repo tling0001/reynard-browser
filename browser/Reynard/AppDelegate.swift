@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             queue: .main
         ) { _ in
             Task { @MainActor in
-                PrivacyResetCoordinator.reset(reason: "device locked / protected data unavailable")
+                PrivacyResetCoordinator.noteDeviceLock()
             }
         }
         return true
