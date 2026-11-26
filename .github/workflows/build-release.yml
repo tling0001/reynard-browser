@@ -56,7 +56,11 @@ jobs:
                 owner, repo, ref: `tags/${tag}`
               });
               targetSha = existing.data.object.sha;
-              core.info(`Tag ${tag} already exists; reusing its existing target ${targetSha}.`);
+              if (targetSha !== context.sha) {
+                core.setFailed(`Tag ${tag} already exists at ${targetSha}, not the current commit ${context.sha}. Update CURRENT_VERSION before creating another release.`);
+                return;
+              }
+              core.info(`Tag ${tag} already exists at this commit; continuing with it.`);
             } catch (error) {
               if (error.status !== 404) throw error;
               await github.rest.git.createRef({
