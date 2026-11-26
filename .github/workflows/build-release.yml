@@ -20,8 +20,6 @@ jobs:
     with:
       checkout_ref: ${{ github.event_name == 'push' && github.sha || inputs.tag }}
       build_normal_ipa: true
-      build_trollstore_tipa: true
-      build_jailbroken_ipa: true
 
   release:
     name: Create release
@@ -45,5 +43,3 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             dist/Reynard.ipa
-            dist/Reynard-TrollStore.tipa
-            dist/Reynard-Jailbroken.ipa
