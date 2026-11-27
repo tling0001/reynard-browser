@@ -16,12 +16,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // unavailable. Unlike ordinary app switching, this is a privacy boundary.
         NotificationCenter.default.addObserver(
             forName: UIApplication.protectedDataWillBecomeUnavailableNotification,
-            object: application,
+            object: nil,
             queue: .main
         ) { _ in
-            Task { @MainActor in
-                PrivacyResetCoordinator.noteDeviceLock()
-            }
+            PrivacyResetCoordinator.noteDeviceLock()
         }
         return true
     }
