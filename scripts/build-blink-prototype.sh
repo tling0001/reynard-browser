@@ -20,9 +20,8 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "This build script requires macOS." >&2; exit 1
 fi
 available_kb=$(df -Pk "$HOME" | awk 'NR==2 {print $4}')
-if (( available_kb < 110000000 )); then
-  echo "At least ~110 GB free disk space is recommended. Available: $((available_kb/1024/1024)) GB" >&2
-  exit 1
+if (( available_kb < 70000000 )); then
+  echo "Warning: under 70 GB free space. Chromium checkout/build may fail; available: $((available_kb/1024/1024)) GB" >&2
 fi
 
 mkdir -p "$ROOT"
