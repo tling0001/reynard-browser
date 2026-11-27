@@ -109,7 +109,7 @@ enum PrivacyResetCoordinator {
 
         UIView.animate(withDuration: 0.25) { toast.alpha = 1 }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
-            UIView.animate(withDuration: 0.25, animations: { toast.alpha = 0 }) {
+            UIView.animate(withDuration: 0.25, animations: { toast.alpha = 0 }) { _ in
                 toast.removeFromSuperview()
             }
         }
