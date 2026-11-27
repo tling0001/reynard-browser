@@ -1,0 +1,68 @@
+name: Build Blink Prototype
+
+on:
+  workflow_dispatch:
+    inputs:
+      jobs:
+        description: Ninja parallel jobs (keep modest to avoid memory pressure)
+        required: true
+        default: "4"
+      bundle_id:
+        description: Bundle identifier for the prototype shell
+        required: true
+        default: com.reynard.blinkexperiment
+      output_name:
+        description: GN output directory
+        required: true
+        default: blink15
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # macOS hosted runner; Chromium iOS build requires macOS + Xcode.
+    runs-on: macos-15
+    timeout-minutes: 360
+    env:
+      BLINK_BUILD_ROOT: ${{ runner.temp }}/reynard-blink
+      BLINK_JOBS: ${{ inputs.jobs }}
+      BLINK_BUNDLE_ID: ${{ inputs.bundle_id }}
+      BLINK_OUT: ${{ inputs.output_name }}
+    steps:
+      - name: Checkout Reynard branch
+        uses: actions/checkout@v4
+        with:
+          ref: blink-experiment
+
+      - name: Install depot_tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "${{ runner.temp }}/depot_tools"
+          echo "${{ runner.temp }}/depot_tools" >> "$GITHUB_PATH"
+
+      - name: Verify runner resources
+        run: |
+          echo "Runner disk:"
+          df -h
+          echo "Xcode:"
+          xcodebuild -version
+          echo "Python:"
+          python3 --version
+          echo "Depot tools:"
+          gclient --version || true
+
+      - name: Build Blink content_shell
+        run: |
+          chmod +x scripts/build-blink-prototype.sh
+          ./scripts/build-blink-prototype.sh
+
+      - name: Package shell
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent "${BLINK_BUILD_ROOT}/chromium/src/out/${BLINK_OUT}/content_shell.app" "${RUNNER_TEMP}/content_shell.zip"
+
+      - name: Upload standalone prototype artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blink-content-shell-${{ inputs.output_name }}
+          path: ${{ runner.temp }}/content_shell.zip
+          retention-days: 7
