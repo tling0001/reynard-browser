@@ -34,14 +34,14 @@ jobs:
           script: |
             const fs = require('fs');
             const config = fs.readFileSync('browser/Configuration/Reynard.xcconfig', 'utf8');
-            const match = config.match(/^CURRENT_VERSION\\s*=\\s*([^\\s#]+)\\s*$/m);
+            const match = config.match(/^CURRENT_VERSION\s*=\s*([^\s#]+)\s*$/m);
             if (!match) {
               core.setFailed('Could not find CURRENT_VERSION in browser/Configuration/Reynard.xcconfig.');
               return;
             }
 
             const version = match[1];
-            if (!/^\\d+(?:\\.\\d+){2,3}(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
+            if (!/^\d+(?:\.\d+){2,3}(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
               core.setFailed(`Invalid app version "${version}". Expected a 3- or 4-component version such as 0.22.1 or 0.22.1.1.`);
               return;
             }
