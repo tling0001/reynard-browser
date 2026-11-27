@@ -41,12 +41,12 @@ else
   gclient sync --nohooks --revision "src@$CHROMIUM_REV"
 fi
 
-rsync -a --delete --exclude='.git' "$ROOT/overlay/src/" "$ROOT/chromium/src/"
+rsync -a --exclude='.git' "$ROOT/overlay/src/" "$ROOT/chromium/src/"
 cd "$ROOT/chromium/src"
 gclient runhooks
 mkdir -p "out/$OUT_NAME"
 cp "$ROOT/overlay/build_args.gn" "out/$OUT_NAME/args.gn"
-python3 - "$ROOT/overlay/build_args.gn" "$BUNDLE_ID" <<'PY'
+python3 - "$BUNDLE_ID" "$OUT_NAME" <<'PY'
 import sys
 from pathlib import Path
 p=Path(sys.argv[1])
