@@ -1,35 +1,28 @@
-# Reynard Blink experiment (without BrowserEngineKit)
+# Blink experiment — implementation progress
 
-This branch explores replacing Reynard's GeckoView-backed browsing layer with a bundled Chromium/Blink engine while keeping the app's browser UI and core browser features.
+## Engine backend boundary added
 
-## Goal
+The app target's synchronized `Reynard` source directory now contains `BrowserEngineContract.swift`. It defines an engine-neutral session/page-state/capability contract and a Blink factory that reports an explicit unavailable error.
 
-- Experiment with Blink/Chromium rather than Gecko.
-- Do **not** use Apple's BrowserEngineKit APIs or BrowserEngineKit extension targets.
-- Keep Reynard's existing app-level browser UX, tab model, navigation, bookmarks, privacy controls, and settings where practical.
-- Keep the engine isolated from the UI and behind an adapter so the main browser UI can remain engine-agnostic.
+This is deliberately not a fake webview: it does not substitute WebKit or Gecko, and it cannot render pages yet. The existing Gecko-specific UI and session plumbing still needs to be migrated to this contract before a Blink adapter can be plugged in.
 
-## Status: exploration scaffold, not a functional Blink port
+## Real Blink source direction
 
-This branch currently documents the proposed architecture. It does not yet contain or embed a Blink build, and it does not replace Gecko in the app. A real Blink integration requires a compatible Chromium/Blink iOS build, an iOS-specific embedding layer, process/sandbox integration, and substantial API parity work. It cannot be achieved by changing the GeckoView import or swapping a framework name.
+The practical starting point for a BrowserEngineKit-free Blink runtime on iOS is the experimental **Blinker Fluid** Chromium overlay, which pins Chromium and builds `content_shell` for iOS without WebKit. Its source overlay is GPL-3.0; review licensing and compatibility before copying or integrating source into this branch.
 
-## Proposed design
+- Project: https://github.com/Nodesclock/Blinker-fluid
+- README build flow: sync a pinned Chromium revision with `depot_tools`, apply the overlay, run hooks, GN and Ninja.
+- This approach is experimental, primarily intended for TrollStore/jailbreak/sideload scenarios, and uses `content_shell`; it is not a ready-made drop-in framework for Reynard.
+- The project requires a large Chromium checkout (roughly 120 GB of disk space) and a Mac/Xcode/depot_tools toolchain.
 
-1. Define an engine adapter boundary (tab/web-view operations, navigation, script execution, history, downloads, permissions, media, and storage).
-2. Build or obtain a Blink/Chromium engine for arm64 iOS with a supported embedding API. This must be a real engine build, not WKWebView, UIWebView, or Chromium's iOS WebKit wrapper.
-3. Implement an adapter backed by Blink and keep engine-specific code out of browser UI and feature controllers.
-4. Replace Gecko-specific extensions and services only where necessary; document features that cannot be ported.
-5. Validate process isolation, code-signing, sandboxing, memory/JIT restrictions, update/security servicing, and distribution entitlement requirements.
+## Next steps
 
-## Important iOS platform constraints
+1. Decouple `ContentView` and `WebContentView` from Gecko concrete types through adapter interfaces.
+2. Build a Chromium overlay reproducibly and verify the produced content_shell binary.
+3. Investigate wrapping content_shell in a reusable UIKit view/session API, including lifecycle, input, navigation, and process management.
+4. Add an isolated proof-of-concept tab that can render and navigate, without modifying the default Gecko branch.
+5. Port feature integration gradually and keep unsupported capabilities explicitly disabled.
 
-Apple's alternative-engine APIs and entitlement model are designed around BrowserEngineKit. This experiment deliberately avoids BrowserEngineKit, so it must not assume that merely embedding Blink grants the platform capabilities or distribution permissions associated with Apple's supported alternative-engine framework. A BrowserEngineKit-free Blink engine still needs a technically viable and policy-compliant process, sandbox, signing, and runtime design. This is an engineering investigation, not a claim that such a design is currently ready for general iOS distribution.
+## Platform and security caveat
 
-## Next engineering milestones
-
-- Inventory and decouple GeckoView-specific APIs behind an engine interface.
-- Prototype the adapter with a mock implementation to keep the app compiling while engine work proceeds.
-- Investigate a viable Blink build and embedding API for iOS without BrowserEngineKit.
-- Prototype one isolated tab displaying and navigating web content before attempting full browser features.
-- Only then port tabs, storage, cookies, content blocking, downloads, media, and browser privacy behavior.
-
+A non-BrowserEngineKit Blink build does not inherit Apple's alternative-engine sandbox, extension, entitlement, or distribution infrastructure. This experiment must independently validate process isolation, runtime memory/JIT behavior, code signing, and the applicable distribution constraints. No claim is made that a generic, safe, distributable Blink browser is achievable by simply embedding the Chromium executable.
