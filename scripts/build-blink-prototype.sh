@@ -49,9 +49,9 @@ cp "$ROOT/overlay/build_args.gn" "out/$OUT_NAME/args.gn"
 python3 - "$BUNDLE_ID" "$OUT_NAME" <<'PY'
 import sys
 from pathlib import Path
-p=Path(sys.argv[1])
-bundle=sys.argv[2]
-args=Path("out/blink15/args.gn")
+bundle=sys.argv[1]
+out_name=sys.argv[2]
+args=Path("out") / out_name / "args.gn"
 text=args.read_text()
 text=text.replace('ios_content_shell_bundle_identifier = "com.nodesclock.blinkerfluid"',f'ios_content_shell_bundle_identifier = "{bundle}"')
 args.write_text(text)
