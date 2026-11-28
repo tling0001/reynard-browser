@@ -142,8 +142,15 @@ final class ToolbarButton: UIButton {
     private func configureAppearance() {
         translatesAutoresizingMaskIntoConstraints = false
         tintColor = .label
-        layer.cornerRadius = UX.toolbarButtonCornerRadius
-        layer.cornerCurve = .continuous
+        if #available(iOS 26.0, *) {
+            var glassConfiguration = UIButton.Configuration.glass()
+            glassConfiguration.contentInsets = .zero
+            configuration = glassConfiguration
+            backgroundColor = .clear
+        } else {
+            layer.cornerRadius = UX.toolbarButtonCornerRadius
+            layer.cornerCurve = .continuous
+        }
     }
     
     private func configureImage() {
