@@ -162,12 +162,23 @@ final class AddressBar: UIView {
     private let addressBarContent: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark ? .tertiarySystemBackground : .systemBackground
-        }
+        view.backgroundColor = .clear
         view.layer.cornerCurve = .continuous
         view.layer.cornerRadius = UX.addressBarBackgroundCornerRadius
         view.clipsToBounds = true
+        return view
+    }()
+
+    private let addressBarGlassView: UIVisualEffectView = {
+        let effect: UIVisualEffect
+        if #available(iOS 26.0, *) {
+            effect = UIGlassEffect.nonAdaptive(style: .regular)
+        } else {
+            effect = UIBlurEffect(style: .systemMaterial)
+        }
+        let view = UIVisualEffectView(effect: effect)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = false
         return view
     }()
     
@@ -633,9 +644,15 @@ final class AddressBar: UIView {
         backgroundColor = .clear
         clipsToBounds = false
         addressBarBackground.layer.shadowColor = UIColor.black.cgColor
-        addressBarBackground.layer.shadowOpacity = UX.addressBarBackgroundShadowOpacity
-        addressBarBackground.layer.shadowRadius = UX.addressBarBackgroundShadowRadius
-        addressBarBackground.layer.shadowOffset = UX.addressBarBackgroundShadowOffset
+        if #available(iOS 26.0, *) {
+            // Native Liquid Glass supplies its own material and depth.
+            addressBarBackground.layer.shadowOpacity = 0
+            addressBarBorder.isHidden = true
+        } else {
+            addressBarBackground.layer.shadowOpacity = UX.addressBarBackgroundShadowOpacity
+            addressBarBackground.layer.shadowRadius = UX.addressBarBackgroundShadowRadius
+            addressBarBackground.layer.shadowOffset = UX.addressBarBackgroundShadowOffset
+        }
         addressBarBackground.layer.masksToBounds = false
     }
     
@@ -643,6 +660,7 @@ final class AddressBar: UIView {
         addSubview(addressBarBackground)
         addSubview(dismissButton)
         addressBarBackground.addSubview(addressBarContent)
+        addressBarContent.addSubview(addressBarGlassView)
         addressBarContent.addSubview(leadingButton)
         addressBarContent.addSubview(secondaryTrailingButton)
         addressBarContent.addSubview(trailingButton)
