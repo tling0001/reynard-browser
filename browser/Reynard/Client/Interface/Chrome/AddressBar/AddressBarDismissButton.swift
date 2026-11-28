@@ -32,9 +32,13 @@ final class AddressBarDismissButton: UIButton {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.shadowOpacity = UX.dismissButtonShadowOpacity
-        layer.cornerRadius = bounds.height / UX.dismissButtonCornerRadiusDivisor
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        if #available(iOS 26.0, *) {
+            layer.shadowOpacity = 0
+        } else {
+            layer.shadowOpacity = UX.dismissButtonShadowOpacity
+            layer.cornerRadius = bounds.height / UX.dismissButtonCornerRadiusDivisor
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        }
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -52,17 +56,26 @@ final class AddressBarDismissButton: UIButton {
         translatesAutoresizingMaskIntoConstraints = false
         alpha = 0
         isHidden = true
-        backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark ? .tertiarySystemBackground : .systemBackground
-        }
         tintColor = .label
         layer.cornerCurve = .continuous
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowRadius = UX.dismissButtonShadowRadius
         layer.shadowOffset = UX.dismissButtonShadowOffset
         layer.masksToBounds = false
-        layer.borderWidth = UX.dismissButtonBorderWidth
-        updateBorderColor()
+        if #available(iOS 26.0, *) {
+            var glassConfiguration = UIButton.Configuration.glass()
+            glassConfiguration.contentInsets = .zero
+            configuration = glassConfiguration
+            backgroundColor = .clear
+            layer.borderWidth = 0
+            layer.shadowOpacity = 0
+        } else {
+            backgroundColor = UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark ? .tertiarySystemBackground : .systemBackground
+            }
+            layer.borderWidth = UX.dismissButtonBorderWidth
+            updateBorderColor()
+        }
         setImage(UIImage(named: "reynard.xmark"), for: .normal)
         setPreferredSymbolConfiguration(
             UIImage.SymbolConfiguration(pointSize: UX.dismissButtonSymbolPointSize, weight: .regular),
