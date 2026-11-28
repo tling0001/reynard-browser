@@ -19,9 +19,6 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       checkout_ref: ${{ github.event_name == 'push' && github.sha || inputs.tag }}
-      build_normal_ipa: true
-      build_trollstore_tipa: true
-      build_jailbroken_ipa: true
 
   release:
     name: Create release
@@ -30,7 +27,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download release artifacts
+      - name: Download release artifact
         uses: actions/download-artifact@v4
         with:
           path: dist
@@ -45,5 +42,3 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             dist/Reynard.ipa
-            dist/Reynard-TrollStore.tipa
-            dist/Reynard-Jailbroken.ipa
